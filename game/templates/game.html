@@ -7,24 +7,304 @@
     <title>Game Room - {{room_id}}</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
         integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Press+Start+2P&display=swap">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #00d4ff;
+            --secondary-color: #ff00ea;
+            --accent-color: #ffea00;
+            --dark-bg: #0a0e27;
+            --card-bg: rgba(15, 23, 42, 0.9);
+            --glow-color: rgba(0, 212, 255, 0.5);
+        }
+
         body {
-            font-family: 'Press Start 2P', sans-serif;
-            background-color: #333;
+            font-family: 'Orbitron', sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0a0e27 100%);
             color: #fff;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        body.dark-mode {
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0a0e27 100%);
+        }
+
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(0, 212, 255, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 0, 234, 0.15) 0%, transparent 50%);
+            animation: bgRotate 15s linear infinite;
+        }
+
+        @keyframes bgRotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Waiting Screen Styles */
+        .fade-in-out {
+            position: relative;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0a0e27 100%);
+        }
+
+        .wait {
+            position: relative;
+            z-index: 10;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
             text-align: center;
+        }
+
+        .wait::before {
+            content: '';
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(0, 212, 255, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: floatGlow 6s ease-in-out infinite;
+            top: 15%;
+            left: 15%;
+        }
+
+        .wait::after {
+            content: '';
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(255, 0, 234, 0.12) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: floatGlow 8s ease-in-out infinite reverse;
+            bottom: 15%;
+            right: 15%;
+        }
+
+        @keyframes floatGlow {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(40px, -40px) scale(1.15); }
+        }
+
+        .wait > div {
+            position: relative;
+            z-index: 1;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 4rem 3rem;
+            border-radius: 30px;
+            border: 2px solid rgba(0, 212, 255, 0.3);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6), 0 0 60px rgba(0, 212, 255, 0.2);
+            animation: floatIn 1s ease-out;
+            max-width: 700px;
+            width: 90%;
+        }
+
+        @keyframes floatIn {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        #status {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(1.5rem, 3.5vw, 2.5rem);
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 2.5rem;
+            text-shadow: 0 0 30px var(--glow-color);
+            animation: pulse 2s ease-in-out infinite;
+            letter-spacing: 2px;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.85; transform: scale(1.03); }
+        }
+
+        .room-code-container {
+            margin-top: 1.5rem;
+            position: relative;
+        }
+
+        .room-code-display {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+            font-weight: 700;
+            color: var(--accent-color);
+            background: linear-gradient(135deg, rgba(255, 234, 0, 0.15), rgba(255, 234, 0, 0.05));
+            padding: 2rem 2.5rem;
+            border-radius: 20px;
+            border: 3px solid var(--accent-color);
+            box-shadow: 0 0 40px rgba(255, 234, 0, 0.3), inset 0 0 20px rgba(255, 234, 0, 0.1);
+            animation: glow 2s ease-in-out infinite;
+            position: relative;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.3s;
+            letter-spacing: 3px;
+        }
+
+        .room-code-display:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 5px 50px rgba(255, 234, 0, 0.5), inset 0 0 30px rgba(255, 234, 0, 0.15);
+        }
+
+        .room-code-display.hidden-code {
+            filter: blur(12px);
+            user-select: none;
+        }
+
+        .room-code-display.copied::after {
+            content: '✓ Copied to Clipboard!';
+            position: absolute;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.7rem;
+            color: #4ade80;
+            background: rgba(74, 222, 128, 0.9);
+            padding: 0.8rem 1.5rem;
+            border-radius: 10px;
+            border: 2px solid #4ade80;
+            box-shadow: 0 0 20px rgba(74, 222, 128, 0.5);
+            animation: fadeInOut 2s ease-in-out;
+            z-index: 100;
+            white-space: nowrap;
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateX(-50%) translateY(10px); }
+            20% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            80% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            100% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(255, 234, 0, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(255, 234, 0, 0.6); }
+        }
+
+        .toggle-visibility-btn {
+            margin-top: 1.5rem;
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(0, 212, 255, 0.1));
+            border: 2px solid var(--primary-color);
+            border-radius: 15px;
+            color: var(--primary-color);
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-family: 'Orbitron', sans-serif;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.2);
+        }
+
+        .toggle-visibility-btn:hover {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.4), rgba(0, 212, 255, 0.2));
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(0, 212, 255, 0.4);
+        }
+
+        .toggle-visibility-btn.visible {
+            background: linear-gradient(135deg, rgba(255, 0, 234, 0.2), rgba(255, 0, 234, 0.1));
+            border-color: var(--secondary-color);
+            color: var(--secondary-color);
+            box-shadow: 0 5px 20px rgba(255, 0, 234, 0.2);
+        }
+
+        .toggle-visibility-btn.visible:hover {
+            background: linear-gradient(135deg, rgba(255, 0, 234, 0.4), rgba(255, 0, 234, 0.2));
+            box-shadow: 0 8px 30px rgba(255, 0, 234, 0.4);
+        }
+
+        .code-hint {
+            margin-top: 1.2rem;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.6);
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 500;
+        }
+
+        .code-hint span {
+            color: var(--accent-color);
+            font-weight: 700;
+        }
+
+        /* Loading Spinner */
+        .loading-spinner {
+            width: 100px;
+            height: 100px;
+            border: 6px solid rgba(0, 212, 255, 0.1);
+            border-top: 6px solid var(--primary-color);
+            border-right: 6px solid var(--secondary-color);
+            border-radius: 50%;
+            animation: spin 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+            margin: 0 auto 2.5rem auto;
+            box-shadow: 0 0 40px rgba(0, 212, 255, 0.4);
+            position: relative;
+        }
+
+        .loading-spinner::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 70px;
+            height: 70px;
+            border: 4px solid rgba(255, 0, 234, 0.2);
+            border-bottom: 4px solid var(--secondary-color);
+            border-left: 4px solid var(--accent-color);
+            border-radius: 50%;
+            animation: spin 0.8s cubic-bezier(0.5, 0, 0.5, 1) infinite reverse;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         /* Animations */
         @keyframes fadeIn {
-            0% {
-                opacity: 0;
-            }
-
-            100% {
-                opacity: 1;
-            }
+            0% { opacity: 0; }
+            100% { opacity: 1; }
         }
 
         /* Player Names and Scores */
@@ -55,9 +335,10 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.6);
+            background: rgba(0, 0, 0, 0.8);
             z-index: 1;
-            animation: fadeIn 1s ease-in-out;
+            animation: fadeIn 0.3s ease-in-out;
+            backdrop-filter: blur(5px);
         }
 
         .modal-content {
@@ -65,88 +346,70 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: #444;
+            background: var(--card-bg);
             padding: 20px;
-            border-radius: 8px;
+            border-radius: 20px;
+            border: 2px solid rgba(0, 212, 255, 0.3);
         }
 
         /* Buttons */
         .button {
-            background-color: #007bff;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
             border: none;
-            padding: 10px 20px;
+            padding: 12px 30px;
             cursor: pointer;
             margin-top: 10px;
+            border-radius: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s;
         }
 
         .button:hover {
-            background-color: #0056b3;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.5);
         }
 
-        body {
-            background-color: white;
-            /* Light mode background color */
-            transition: background-color 0.5s ease-in-out;
-            margin: 0;
-            padding: 0;
-        }
-
-        body.dark-mode {
-            background-color: black;
-            /* Dark mode background color */
-        }
-
-        .fade-in-out {
-            /* Set your desired width */
-            /* height: 100px; */
-            /* Set your desired height */
-            background-color: transparent;
-            /* You can set a background color if needed */
-            background-image: url('/static/images/AmongUs.jpg');
-            background-size: cover;
-            /* Adjust background size to cover the element */
-            background-repeat: no-repeat;
-            /* Prevent image repetition */
-            animation: fade 4s infinite;
-        }
-
-        @keyframes fade {
-            0% {
-                opacity: 0;
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .wait > div {
+                padding: 2rem 1.5rem;
             }
 
-            50% {
-                opacity: 1;
+            #status {
+                font-size: 1rem;
             }
 
-            100% {
-                opacity: 0;
+            .room-code-display {
+                font-size: 0.8rem;
+                padding: 1rem 1.5rem;
             }
-        }
-
-        .wait {
-            height: 100svh;
-            padding: 25px 50px;
-            text-shadow: 5px 5px 10px black;
-            font-size: 35px;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: aliceblue;
-            font-weight: bold;
-            text-align: start;
         }
     </style>
 </head>
 
 <body class="dark-mode" data-bs-theme="dark">
+    <div class="bg-animation"></div>
     <div id="replace">
         <div class="fade-in-out wait change">
-            <div style="font-family: 'Press Start 2P', sans-serif;">
+            <div>
+                <div class="loading-spinner"></div>
                 <div id="status">
                     Waiting for other players...
                 </div>
-                <div>
-                    Room id :- {{room_id}}
+                <div class="room-code-container">
+                    <div class="room-code-display hidden-code" id="roomCodeDisplay" data-code="{{room_id}}">
+                        🎮 Room Code: {{room_id}}
+                    </div>
+                    <button class="toggle-visibility-btn" id="toggleVisibilityBtn">
+                        <span id="toggleIcon">👁️</span>
+                        <span id="toggleText">Show Code</span>
+                    </button>
+                    <div class="code-hint">
+                        💡 <span>Click code</span> to copy to clipboard
+                    </div>
                 </div>
                 <audio autoplay loop>
                     <source src="/static/images/loading.mp3" type="audio/mpeg">
@@ -156,13 +419,78 @@
             </div>
         </div>
     </div>
+    <script>
+        let codeVisible = false;
+        const roomCode = '{{room_id}}';
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const codeDisplay = document.getElementById('roomCodeDisplay');
+            const toggleBtn = document.getElementById('toggleVisibilityBtn');
+            const toggleIcon = document.getElementById('toggleIcon');
+            const toggleText = document.getElementById('toggleText');
+            
+            // Toggle visibility button
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', function() {
+                    codeVisible = !codeVisible;
+                    
+                    if (codeVisible) {
+                        codeDisplay.classList.remove('hidden-code');
+                        toggleBtn.classList.add('visible');
+                        toggleIcon.textContent = '🙈';
+                        toggleText.textContent = 'Hide Code';
+                    } else {
+                        codeDisplay.classList.add('hidden-code');
+                        toggleBtn.classList.remove('visible');
+                        toggleIcon.textContent = '👁️';
+                        toggleText.textContent = 'Show Code';
+                    }
+                });
+            }
+
+            // Click code to copy (works whether visible or hidden)
+            if (codeDisplay) {
+                codeDisplay.addEventListener('click', async function() {
+                    // Copy works always, just show appropriate feedback
+                    try {
+                        await navigator.clipboard.writeText(roomCode);
+                        this.classList.add('copied');
+                        setTimeout(() => {
+                            this.classList.remove('copied');
+                        }, 2000);
+                    } catch (err) {
+                        // Fallback for older browsers
+                        const textArea = document.createElement('textarea');
+                        textArea.value = roomCode;
+                        textArea.style.position = 'fixed';
+                        textArea.style.left = '-999999px';
+                        document.body.appendChild(textArea);
+                        textArea.select();
+                        try {
+                            document.execCommand('copy');
+                            this.classList.add('copied');
+                            setTimeout(() => {
+                                this.classList.remove('copied');
+                            }, 2000);
+                        } catch (err) {
+                            console.error('Failed to copy:', err);
+                        }
+                        document.body.removeChild(textArea);
+                    }
+                });
+            }
+        });
+    </script>
     <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
-            <div class="modal-content overflow-hidden">
-                <div class="modal-body">
-                    <div id="game-choose">
-                        <div id="cards">
+            <div class="modal-content modern-modal-content">
+                <div class="modal-body modern-modal-body">
+                    <div class="modern-modal-header">
+                        <h2 class="modern-modal-title">🎮 Choose Your Game</h2>
+                    </div>
+                    <div id="game-choose" class="game-carousel-container">
+                        <div id="cards" class="game-cards-wrapper">
                         </div>
                     </div>
                 </div>
@@ -195,42 +523,35 @@
     <div class="modal fade" id="declareWinnerModal" tabindex="-1" role="dialog"
         aria-labelledby="declareWinnerModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
-            <div class="modal-content overflow-hidden">
-                <div class="modal-body">
-                    <div id="game-choose">
-                        <div id="cards">
-                            <div class="card" data-color="blue" id="player_1_button_modal" onclick="b">
-                                <img class="img-fluid pimg card-front-image card-image player_1_img_modal"
-                                    src="/static/avatars/4.jpg" alt="" width="300px" height="300px"
-                                    id="player_1_img_modal">
-                                <div class="card-faders">
-                                    <img class="card-fader card-image player_1_img_modal" src="${game.path}" />
-                                    <img class="card-fader card-image player_1_img_modal" src="${game.path}" />
-                                    <img class="card-fader card-image player_1_img_modal" src="${game.path}" />
-                                    <img class="card-fader card-image player_1_img_modal" src="${game.path}" />
-                                    <img class="card-fader card-image player_1_img_modal" src="${game.path}" />
-                                    <img class="card-fader card-image player_1_img_modal" src="${game.path}" />
-                                    <img class="card-fader card-image player_1_img_modal" src="${game.path}" />
-                                    <img class="card-fader card-image player_1_img_modal" src="${game.path}" />
+            <div class="modal-content modern-modal-content">
+                <div class="modal-body modern-modal-body">
+                    <div class="modern-modal-header">
+                        <h2 class="modern-modal-title">👑 Declare the Winner</h2>
+                    </div>
+                    <div class="winner-selection-container">
+                        <div class="winner-cards-wrapper">
+                            <div class="winner-card" data-color="blue" id="player_1_button_modal">
+                                <div class="winner-card-inner">
+                                    <img class="winner-avatar player_1_img_modal"
+                                        src="/static/avatars/4.jpg" alt="" 
+                                        id="player_1_img_modal">
+                                    <div class="winner-name" id="player_1_name_modal">Player 1</div>
+                                    <div class="winner-badge">🏆</div>
                                 </div>
-                                <div class="h3 text-center py-2" id="player_1_name_modal">Bhavin</div>
                             </div>
 
-                            <div class="card" data-color="red" id="player_2_button_modal" onclick="a">
-                                <img class="img-fluid pimg card-front-image card-image player_2_img_modal"
-                                    src="/static/avatars/4.jpg" alt="" width="300px" height="300px"
-                                    id="player_2_img_modal">
-                                <div class="card-faders">
-                                    <img class="card-fader card-image player_2_img_modal" src="${game.path}" />
-                                    <img class="card-fader card-image player_2_img_modal" src="${game.path}" />
-                                    <img class="card-fader card-image player_2_img_modal" src="${game.path}" />
-                                    <img class="card-fader card-image player_2_img_modal" src="${game.path}" />
-                                    <img class="card-fader card-image player_2_img_modal" src="${game.path}" />
-                                    <img class="card-fader card-image player_2_img_modal" src="${game.path}" />
-                                    <img class="card-fader card-image player_2_img_modal" src="${game.path}" />
-                                    <img class="card-fader card-image player_2_img_modal" src="${game.path}" />
+                            <div class="winner-vs-divider">
+                                <span>VS</span>
+                            </div>
+
+                            <div class="winner-card" data-color="red" id="player_2_button_modal">
+                                <div class="winner-card-inner">
+                                    <img class="winner-avatar player_2_img_modal"
+                                        src="/static/avatars/4.jpg" alt="" 
+                                        id="player_2_img_modal">
+                                    <div class="winner-name" id="player_2_name_modal">Player 2</div>
+                                    <div class="winner-badge">🏆</div>
                                 </div>
-                                <div class="h3 text-center py-2" id="player_2_name_modal">Bhavin</div>
                             </div>
                         </div>
                     </div>
@@ -259,17 +580,7 @@
         for (let i = 1; i < 10; i++) {
             num[i] = new Audio(`/static/audio/${i}.mp3`);
         }
-        const images = ['AmongUs.jpg', 'ApexLegends.jpg', 'CSGO.jpg', 'Dota2.webp', 'FallGuys.avif', 'Fortnite.jpg', 'LeagueOfLegends.jpg', 'RocketLeague.avif', 'Valorant.jpg']
-        let n = 0;
-
-        function ch() {
-            if (n === images.length - 1) {
-                n = 0;
-            } else {
-                n++;
-            }
-            document.querySelector('.fade-in-out').style.backgroundImage = "url('/static/images/" + images[n] + "')";
-        }
+        // Background cycling removed for cleaner lobby experience
         const check_declare_winner = async () => {
             const response = await fetch('/get-round-data?id=' + id);
             const data = await response.json();
@@ -344,20 +655,26 @@
             }
         }
 
-        async function sendchosenavatar(avatarname) {
-            const response = await fetch("/chosen-avatar", {
-                "method": "POST",
-                "headers": {
-                    "Content-Type": "application/x-www-form-urlencoded",
-                },
-                "body": new URLSearchParams({
-                    "avatar": avatarname,
-                    "room_code": id
+        window.sendchosenavatar = async function(avatarname) {
+            console.log('Avatar selected:', avatarname);
+            try {
+                const response = await fetch("/chosen-avatar", {
+                    "method": "POST",
+                    "headers": {
+                        "Content-Type": "application/x-www-form-urlencoded",
+                    },
+                    "body": new URLSearchParams({
+                        "avatar": avatarname,
+                        "room_code": id
+                    })
                 })
-            })
-            const data = await response.json();
-            if (data.success) {
-                $('#avatarModal').modal('hide');
+                const data = await response.json();
+                console.log('Response:', data);
+                if (data.success) {
+                    $('#avatarModal').modal('hide');
+                }
+            } catch (error) {
+                console.error('Error selecting avatar:', error);
             }
         }
 
@@ -372,7 +689,6 @@
                 let datah2 = await resp2.json();
                 let respAvatars = await fetch("/get-avatars");
                 let { data: dataAvatars } = await respAvatars.json();
-                clearInterval(wait2);
                 clearInterval(wait);
                 document.getElementsByTagName("style")[0].innerHTML = datah.style;
                 document.getElementById("replace").innerHTML = datah.body;
@@ -402,24 +718,105 @@
                 }
                 document.getElementById("choose-game").style = datah2.creator.id === datah2.my_id ? document.getElementById("choose-game").style : "display:none;";
 
+                // Avatar Carousel Setup
+                let currentAvatarIndex = 0;
+                const avatarsPerPage = 3;
+                const totalPages = Math.ceil(dataAvatars.length / avatarsPerPage);
+
+                // Build avatar HTML
+                const avatarChooseContainer = document.getElementsByClassName("avatar-choose")[0];
+                avatarChooseContainer.innerHTML = '';
+                
                 for (let i = 0; i < dataAvatars.length; i++) {
-                    document.getElementsByClassName("avatar-choose")[0].innerHTML += `
-                    <div class="col-lg-4 mb-3 d-flex justify-content-center">
-                        <div class="card" data-color="${dataAvatars[i].bg}" onclick="sendchosenavatar('${dataAvatars[i].name}')">
-                            <img class="card-front-image card-image" src="${dataAvatars[i].path}" />
-                            <div class="card-faders">
-                                <img class="card-fader card-image" src="${dataAvatars[i].path}" />
-                                <img class="card-fader card-image" src="${dataAvatars[i].path}" />
-                                <img class="card-fader card-image" src="${dataAvatars[i].path}" />
-                                <img class="card-fader card-image" src="${dataAvatars[i].path}" />
-                                <img class="card-fader card-image" src="${dataAvatars[i].path}" />
-                                <img class="card-fader card-image" src="${dataAvatars[i].path}" />
-                                <img class="card-fader card-image" src="${dataAvatars[i].path}" />
-                                <img class="card-fader card-image" src="${dataAvatars[i].path}" />
-                            </div>
-                        </div>
-                    </div>
+                    const avatarDiv = document.createElement('div');
+                    avatarDiv.className = i < avatarsPerPage ? 'active' : '';
+                    const avatarName = dataAvatars[i].name;
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.setAttribute('data-color', dataAvatars[i].bg);
+                    card.onclick = function() { 
+                        console.log('Card clicked:', avatarName);
+                        window.sendchosenavatar(avatarName); 
+                    };
+                    card.innerHTML = `
+                        <img class="card-front-image card-image" src="${dataAvatars[i].path}" />
                     `;
+                    avatarDiv.appendChild(card);
+                    avatarChooseContainer.appendChild(avatarDiv);
+                }
+
+                // Add navigation controls
+                const modalBody = document.querySelector('#avatarModal .modal-body');
+                const carouselContainer = document.createElement('div');
+                carouselContainer.className = 'avatar-carousel-container';
+                carouselContainer.innerHTML = `
+                    <button class="avatar-nav-btn avatar-nav-prev" onclick="navigateAvatars(-1)">◀</button>
+                    <button class="avatar-nav-btn avatar-nav-next" onclick="navigateAvatars(1)">▶</button>
+                `;
+                
+                // Wrap existing avatar-choose in carousel container
+                const avatarChoose = modalBody.querySelector('.avatar-choose');
+                const parent = avatarChoose.parentNode;
+                parent.insertBefore(carouselContainer, avatarChoose);
+                carouselContainer.appendChild(avatarChoose);
+
+                // Add page indicator
+                const pageIndicator = document.createElement('div');
+                pageIndicator.className = 'avatar-page-indicator';
+                pageIndicator.innerHTML = `
+                    <div>Page <span id="currentPage">1</span> of ${totalPages}</div>
+                    <div class="avatar-page-dots" id="pageDots"></div>
+                `;
+                carouselContainer.appendChild(pageIndicator);
+
+                // Create page dots
+                const dotsContainer = document.getElementById('pageDots');
+                for (let i = 0; i < totalPages; i++) {
+                    const dot = document.createElement('div');
+                    dot.className = 'avatar-page-dot' + (i === 0 ? ' active' : '');
+                    dot.onclick = () => goToPage(i);
+                    dotsContainer.appendChild(dot);
+                }
+
+                // Navigation functions
+                window.navigateAvatars = function(direction) {
+                    currentAvatarIndex += direction;
+                    if (currentAvatarIndex < 0) currentAvatarIndex = 0;
+                    if (currentAvatarIndex >= totalPages) currentAvatarIndex = totalPages - 1;
+                    updateAvatarDisplay();
+                };
+
+                window.goToPage = function(pageIndex) {
+                    currentAvatarIndex = pageIndex;
+                    updateAvatarDisplay();
+                };
+
+                function updateAvatarDisplay() {
+                    const allAvatars = avatarChooseContainer.children;
+                    const startIndex = currentAvatarIndex * avatarsPerPage;
+                    const endIndex = startIndex + avatarsPerPage;
+
+                    // Update visibility
+                    for (let i = 0; i < allAvatars.length; i++) {
+                        if (i >= startIndex && i < endIndex) {
+                            allAvatars[i].classList.add('active');
+                        } else {
+                            allAvatars[i].classList.remove('active');
+                        }
+                    }
+
+                    // Update page indicator
+                    document.getElementById('currentPage').textContent = currentAvatarIndex + 1;
+
+                    // Update dots
+                    const dots = document.querySelectorAll('.avatar-page-dot');
+                    dots.forEach((dot, index) => {
+                        dot.classList.toggle('active', index === currentAvatarIndex);
+                    });
+
+                    // Update button states
+                    document.querySelector('.avatar-nav-prev').classList.toggle('disabled', currentAvatarIndex === 0);
+                    document.querySelector('.avatar-nav-next').classList.toggle('disabled', currentAvatarIndex === totalPages - 1);
                 }
 
                 roundAudio.play();
@@ -430,7 +827,6 @@
         }
 
         let wait = setInterval(() => check(id), 3000);
-        let wait2 = setInterval(ch, 4000);
 
         const chooseGame = async () => {
             const response = await fetch("/choose-game");
@@ -494,22 +890,12 @@
             }
         }
         $('#exampleModal').on('show.bs.modal', async function (event) {
-            const response = await fetch("/choose-game");
+            const response = await fetch("/choose-game?room_code=" + id);
             const data = await response.json();
             let imgs = data.games.map((game) => {
                 return `
                 <div class="card" data-color="${game.bg}" data-name="${game.name}" onclick="sendchosengame('${game.name}')">
                     <img class="card-front-image card-image" src="${game.path}" />
-                    <div class="card-faders">
-                        <img class="card-fader card-image" src="${game.path}" />
-                        <img class="card-fader card-image" src="${game.path}" />
-                        <img class="card-fader card-image" src="${game.path}" />
-                        <img class="card-fader card-image" src="${game.path}" />
-                        <img class="card-fader card-image" src="${game.path}" />
-                        <img class="card-fader card-image" src="${game.path}" />
-                        <img class="card-fader card-image" src="${game.path}" />
-                        <img class="card-fader card-image" src="${game.path}" />
-                    </div>
                 </div>
             `})
             document.getElementById('cards').innerHTML = imgs;
